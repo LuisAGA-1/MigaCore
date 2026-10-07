@@ -1,0 +1,50 @@
+Puertos de Connexiones seriales
+RS 232
+DB9
+DB9
+RJ45
+10BASET -> 10mbts Banda base con cable UTP
+100BASEF
+
+Banda base
+Banda Ancha
+
+características de una señal de comunicaciones:
+Características			Tipo de modulacion		Radio
+amplitud			ASK				AM
+frecuencia			FSK				FM
+fase				PSK				
+
+Modem-> modulador - Demodulador
+2.4 MHz y  5Mhz69
+666
+
+EIA/TIA 568 ->
+CAT3
+CAT5
+
+FISICA Capa ll
+
+Protocolos de control de acceso al medio
+CSMA CD
+CSMA CA
+
+
+
+
+Practica05_HaltDuplex y FullDuplex 
+Fecha: 05:35  pm Martes 9 de septiembre de 2026
+Nombre: Luis Angel Alegria Gomez
+Matricula: 100030340
+
+
+
+---->Identificar los suv¿bsistemas de cableado estructurado bajo la norma EIA/TIA 568
+1. Backbone
+2. Horizontal <<<---Practica de hoy
+3. Cuarto de equipamiento
+4. Acometidas
+5. Area de trabajo
+6. Closet de Telecomunicacioenes
+
+Realizar un presupuesto de cuanto cuesta nuestra red

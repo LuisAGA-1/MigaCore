@@ -1,0 +1,42 @@
+import sys, pathlib, fitz
+from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE as T
+
+pptx = pathlib.Path(sys.argv[1]).resolve()
+out = pptx.with_suffix("")
+out.mkdir(exist_ok=True)
+
+pdf = fitz.open(pptx.with_suffix(".pdf"))
+prs = Presentation(pptx)
+
+VISUAL = {T.PICTURE, T.GROUP, T.CHART, T.FREEFORM, T.LINE}
+
+def textos(shapes):
+    for s in shapes:
+        if s.shape_type == T.GROUP:
+            yield from textos(s.shapes)
+        elif getattr(s, "has_table", False) and s.has_table:
+            for fila in s.table.rows:
+                yield " | ".join(c.text.strip() for c in fila.cells)
+        elif s.has_text_frame and s.text_frame.text.strip():
+            yield s.text_frame.text.strip()
+
+def es_visual(slide):
+    tipos = [s.shape_type for s in slide.shapes]
+    return any(t in VISUAL for t in tipos) or tipos.count(T.AUTO_SHAPE) > 5
+
+partes = []
+for i, slide in enumerate(prs.slides):
+    n = i + 1
+    bloque = [f"## Diapositiva {n}"]
+    bloque += list(textos(slide.shapes))
+    if slide.has_notes_slide and slide.notes_slide.notes_text_frame.text.strip():
+        bloque.append("Notas: " + slide.notes_slide.notes_text_frame.text.strip())
+    if es_visual(slide):
+        nombre = f"diap-{n}.png"
+        pdf[i].get_pixmap(dpi=110, colorspace=fitz.csGRAY).save(out / nombre)
+        bloque.append(f"> [Diagrama o imagen: ver {nombre}]")
+    partes.append("\n\n".join(bloque))
+
+(out / "presentacion.md").write_text("\n\n".join(partes), encoding="utf-8")
+print("Listo:", out)

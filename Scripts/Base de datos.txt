@@ -1,0 +1,8 @@
+Base de datos
+
+conceptos:
+base de datos relacional
+base de datos de archivos planos
+
+datos.csv
+'CN0003','MARIA','GONZALEZ','LOPEZ','CALLE CENTRAL NTE 105','TUXTLA GUTIERREZ',
