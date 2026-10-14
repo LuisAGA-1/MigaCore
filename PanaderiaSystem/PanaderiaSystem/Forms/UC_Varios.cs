@@ -145,8 +145,8 @@ namespace PanaderiaSystem.Forms
                 var p = cmbProducto.SelectedItem as Producto;
                 DatabaseManager.Instance.GuardarProduccion(new RegistroProduccion
                 {
-                    Fecha = dtpFecha.Value, ProductoId = p.Id, ProductoNombre = p.Nombre,
-                    CantidadHecha = hecho, CantidadVendida = vendido, UsuarioId = Session.UsuarioActual.Id
+                    Fecha = dtpFecha.Value, Id_producto = p.Id_producto, ProductoNombre = p.Nombre,
+                    CantidadHecha = hecho, CantidadVendida = vendido, Id_usuario = Session.UsuarioActual.Id_usuario
                 });
                 Cargar(); MessageBox.Show("Producción registrada.", "✅");
             };
@@ -248,7 +248,7 @@ namespace PanaderiaSystem.Forms
                 if (usuarioActual == null) return;
                 if (usuarioActual.NombreUsuario == "admin") { MessageBox.Show("No puedes eliminar el administrador principal."); return; }
                 if (MessageBox.Show($"¿Eliminar a {usuarioActual.Nombre}?", "Confirmar", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                { DatabaseManager.Instance.EliminarUsuario(usuarioActual.Id); Cargar(); }
+                { DatabaseManager.Instance.EliminarUsuario(usuarioActual.Id_usuario); Cargar(); }
             };
             panelForm.Controls.AddRange(new Control[] { btnNuevo, btnGuardar, btnElim });
 

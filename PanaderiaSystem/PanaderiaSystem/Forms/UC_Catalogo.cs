@@ -87,7 +87,7 @@ namespace PanaderiaSystem.Forms
             }
 
             // Cargar categorías
-            cmbCategoria.Items.Add(new Categoria { Id = 0, Nombre = "-- Sin categoría --" });
+            cmbCategoria.Items.Add(new Categoria { Id_categoria = 0, Nombre = "-- Sin categoría --" });
             foreach (var c in DatabaseManager.Instance.ObtenerCategorias())
                 cmbCategoria.Items.Add(c);
             cmbCategoria.DisplayMember = "Nombre";
@@ -120,7 +120,7 @@ namespace PanaderiaSystem.Forms
                 if (string.IsNullOrWhiteSpace(txtNuevaCat.Text)) return;
                 DatabaseManager.Instance.GuardarCategoria(new Categoria { Nombre = txtNuevaCat.Text.Trim() });
                 cmbCategoria.Items.Clear();
-                cmbCategoria.Items.Add(new Categoria { Id = 0, Nombre = "-- Sin categoría --" });
+                cmbCategoria.Items.Add(new Categoria { Id_categoria = 0, Nombre = "-- Sin categoría --" });
                 foreach (var c in DatabaseManager.Instance.ObtenerCategorias()) cmbCategoria.Items.Add(c);
                 cmbCategoria.SelectedIndex = cmbCategoria.Items.Count - 1;
                 txtNuevaCat.Clear();
@@ -157,7 +157,7 @@ namespace PanaderiaSystem.Forms
                 txtPrecio.Text = p.Precio.ToString("N2");
                 chkActivo.Checked = p.Activo;
                 for (int i = 0; i < cmbCategoria.Items.Count; i++)
-                    if ((cmbCategoria.Items[i] as Categoria)?.Id == p.CategoriaId)
+                    if ((cmbCategoria.Items[i] as Categoria)?.Id_categoria == p.Id_categoria)
                     { cmbCategoria.SelectedIndex = i; break; }
             }
         }
@@ -178,7 +178,7 @@ namespace PanaderiaSystem.Forms
             p.Nombre = txtNombre.Text.Trim();
             p.Precio = precio;
             p.Activo = chkActivo.Checked;
-            p.CategoriaId = (cmbCategoria.SelectedItem as Categoria)?.Id ?? 0;
+            p.Id_categoria = (cmbCategoria.SelectedItem as Categoria)?.Id_categoria ?? 0;
 
             DatabaseManager.Instance.GuardarProducto(p);
             Cargar();
