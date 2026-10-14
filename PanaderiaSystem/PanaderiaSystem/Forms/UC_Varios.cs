@@ -200,14 +200,14 @@ namespace PanaderiaSystem.Forms
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
             dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nombre", DataPropertyName = "Nombre" });
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Usuario", DataPropertyName = "Usuario" });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Usuario", DataPropertyName = "NombreUsuario" });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Rol", DataPropertyName = "Rol" });
             dgv.SelectionChanged += (s, e) => {
                 if (dgv.CurrentRow?.DataBoundItem is Usuario u)
                 {
                     usuarioActual = u;
                     txtNombre.Text = u.Nombre; txtUsuario.Text = u.NombreUsuario;
-                    txtPassword.Text = u.Password; cmbRol.SelectedIndex = (int)u.Rol;
+                    txtPassword.Clear(); cmbRol.SelectedIndex = (int)u.Rol;
                 }
             };
 
@@ -216,7 +216,7 @@ namespace PanaderiaSystem.Forms
             var flds = new (string lbl, Control ctrl)[] {
                 ("Nombre completo:", txtNombre = new TextBox { Width = 320, Font = new Font("Segoe UI", 11) }),
                 ("Nombre de usuario:", txtUsuario = new TextBox { Width = 320, Font = new Font("Segoe UI", 11) }),
-                ("Contraseña:", txtPassword = new TextBox { Width = 320, Font = new Font("Segoe UI", 11), PasswordChar = '●' }),
+                ("Contraseña (vacía = no cambiar):", txtPassword = new TextBox { Width = 320, Font = new Font("Segoe UI", 11), PasswordChar = '●' }),
                 ("Rol:", cmbRol = new ComboBox { Width = 320, Font = new Font("Segoe UI", 11), DropDownStyle = ComboBoxStyle.DropDownList }),
             };
             cmbRol.Items.AddRange(new object[] { "Administrador", "Cajero", "Producción" });
@@ -238,6 +238,7 @@ namespace PanaderiaSystem.Forms
             btnNuevo.Click += (s, e) => { usuarioActual = null; txtNombre.Clear(); txtUsuario.Clear(); txtPassword.Clear(); cmbRol.SelectedIndex = 1; txtNombre.Focus(); };
             btnGuardar.Click += (s, e) => {
                 if (string.IsNullOrWhiteSpace(txtNombre.Text) || string.IsNullOrWhiteSpace(txtUsuario.Text)) { MessageBox.Show("Llena todos los campos."); return; }
+                if (usuarioActual == null && txtPassword.Text.Length == 0) { MessageBox.Show("El usuario nuevo necesita contraseña."); return; }
                 var u = usuarioActual ?? new Usuario();
                 u.Nombre = txtNombre.Text.Trim(); u.NombreUsuario = txtUsuario.Text.Trim();
                 u.Password = txtPassword.Text; u.Rol = (RolUsuario)cmbRol.SelectedIndex;
