@@ -252,10 +252,21 @@ namespace PanaderiaSystem.Forms
         private void CargarProductos(string filtro = "")
         {
             panelProductos.Controls.Clear();
-            var productos = DatabaseManager.Instance.ObtenerProductos();
+            var productos = DatabaseManager.Instance.ObtenerProductos()
+                .Where(p => p.EstaDisponible() && p.Nombre.IndexOf(filtro, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
 
-            if (!string.IsNullOrEmpty(filtro))
-                productos = productos.Where(p => p.Nombre.IndexOf(filtro, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+            if (productos.Count == 0)
+            {
+                panelProductos.Controls.Add(new Label
+                {
+                    Text = "Producto no encontrado",
+                    AutoSize = true,
+                    Margin = new Padding(12),
+                    Font = new Font("Segoe UI", 11, FontStyle.Italic),
+                    ForeColor = Color.Gray
+                });
+                return;
+            }
 
             var categorias = productos.Select(p => p.CategoriaNombre).Distinct().OrderBy(c => c);
             Color[] coloresCategoria = {

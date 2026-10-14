@@ -74,7 +74,7 @@ namespace PanaderiaSystem.Forms
                 if (e.RowIndex < 0) return;
                 var row = dgv.Rows[e.RowIndex];
                 var ing = row.DataBoundItem as Ingrediente;
-                if (ing?.BajoStock == true)
+                if (ing?.RequiereReabasto() == true)
                 {
                     row.DefaultCellStyle.BackColor = Color.FromArgb(255, 220, 220);
                     row.DefaultCellStyle.ForeColor = Color.DarkRed;
