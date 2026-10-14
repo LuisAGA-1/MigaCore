@@ -34,6 +34,7 @@ namespace PanaderiaSystem.Models
         public string CategoriaNombre { get; set; }
         public bool Activo { get; set; } = true;
         public string ImagenPath { get; set; }
+        public bool EstaDisponible() => Activo;
     }
 
     // ==================== INVENTARIO ====================
@@ -44,7 +45,7 @@ namespace PanaderiaSystem.Models
         public decimal Cantidad { get; set; }
         public string Unidad { get; set; }  // kg, lt, pz, etc.
         public decimal CantidadMinima { get; set; }
-        public bool BajoStock => Cantidad <= CantidadMinima;
+        public bool RequiereReabasto() => Cantidad <= CantidadMinima;
     }
 
     public class RecetaIngrediente

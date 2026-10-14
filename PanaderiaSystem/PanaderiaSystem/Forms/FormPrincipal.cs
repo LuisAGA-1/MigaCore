@@ -93,6 +93,7 @@ namespace PanaderiaSystem.Forms
                 "🍞 Catálogo",
                 "📊 Reportes",
                 "👥 Clientes",
+                "📋 Pedidos",
                 "🏭 Producción",
                 "👤 Usuarios",
                 "📈 Estadísticas"
@@ -120,11 +121,15 @@ namespace PanaderiaSystem.Forms
                 btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(100, 65, 30);
                 btn.Click += MenuClick;
 
-                // Permisos
-                if (menu.Contains("Usuarios") && !Session.EsAdmin)
-                    btn.Enabled = false;
-                if (menu.Contains("Inventario") && !Session.EsAdmin && !Session.EsProduccion)
-                    btn.Enabled = false;
+                // Permisos según el diagrama de casos de uso (EsCajero y EsProduccion incluyen al admin)
+                if (menu.Contains("Punto de Venta") || menu.Contains("Clientes"))
+                    btn.Enabled = Session.EsCajero;
+                else if (menu.Contains("Pedidos"))
+                    btn.Enabled = Session.EsCajero || Session.EsProduccion;
+                else if (menu.Contains("Inventario") || menu.Contains("Producción"))
+                    btn.Enabled = Session.EsProduccion;
+                else  // Catálogo, Reportes, Usuarios, Estadísticas
+                    btn.Enabled = Session.EsAdmin;
 
                 panelMenu.Controls.Add(btn);
                 yPos += 52;
@@ -167,6 +172,7 @@ namespace PanaderiaSystem.Forms
             else if (tag.Contains("Catálogo")) uc = new UC_Catalogo();
             else if (tag.Contains("Reportes")) uc = new UC_Reportes();
             else if (tag.Contains("Clientes")) uc = new UC_Clientes();
+            else if (tag.Contains("Pedidos")) uc = new UC_Pedidos();
             else if (tag.Contains("Producción")) uc = new UC_Produccion();
             else if (tag.Contains("Usuarios")) uc = new UC_Usuarios();
             else if (tag.Contains("Estadísticas")) uc = new UC_Estadisticas();
