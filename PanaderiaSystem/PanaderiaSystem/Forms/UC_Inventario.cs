@@ -154,7 +154,7 @@ namespace PanaderiaSystem.Forms
         private void AjustarCantidad(TextBox txtAjuste, int signo)
         {
             if (ingredienteActual == null || !decimal.TryParse(txtAjuste.Text, out decimal adj)) return;
-            DatabaseManager.Instance.AjustarInventario(ingredienteActual.Id, signo * adj);
+            DatabaseManager.Instance.AjustarInventario(ingredienteActual.Id_ingrediente, signo * adj);
             Cargar();
         }
 

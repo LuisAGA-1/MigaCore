@@ -133,7 +133,7 @@ namespace PanaderiaSystem.Forms
 
             var tabVentas = new TabPage("📋 Historial de Ventas");
             dgvVentas = CrearGrid(new[] {
-                ("Folio", "Id", "N0"), ("Fecha", "Fecha", "g"), ("Total", "Total", "C2"),
+                ("Folio", "Id_venta", "N0"), ("Fecha", "Fecha", "g"), ("Total", "Total", "C2"),
                 ("Método", "MetodoPago", ""), ("Cajero", "UsuarioNombre", "")
             });
             dgvVentas.Dock = DockStyle.Fill;

@@ -338,21 +338,30 @@ namespace PanaderiaSystem.Forms
 
         private void AgregarAlCarrito(Producto p)
         {
-            var existente = carrito.FirstOrDefault(d => d.ProductoId == p.Id);
+            var existente = carrito.FirstOrDefault(d => d.Id_producto == p.Id_producto);
+            var nuevo = new DetalleVenta
+            {
+                Id_producto = p.Id_producto,
+                ProductoNombre = p.Nombre,
+                Cantidad = 1,
+                PrecioUnitario = p.Precio
+            };
+
+            // ¿Ingredientes suficientes? Se valida el carrito completo con la pieza nueva incluida
+            var propuesta = carrito.Where(d => d != existente).ToList();
+            propuesta.Add(existente == null ? nuevo : new DetalleVenta { Id_producto = p.Id_producto, Cantidad = existente.Cantidad + 1 });
+            var faltantes = DatabaseManager.Instance.ValidarIngredientes(propuesta);
+            if (faltantes.Count > 0)
+            {
+                MessageBox.Show("Ingredientes insuficientes:\n" + string.Join("\n", faltantes),
+                    "Ingredientes insuficientes", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             if (existente != null)
-            {
                 existente.Cantidad++;
-            }
             else
-            {
-                carrito.Add(new DetalleVenta
-                {
-                    ProductoId = p.Id,
-                    ProductoNombre = p.Nombre,
-                    Cantidad = 1,
-                    PrecioUnitario = p.Precio
-                });
-            }
+                carrito.Add(nuevo);
             ActualizarCarrito();
         }
 
@@ -426,14 +435,23 @@ namespace PanaderiaSystem.Forms
                 Fecha = DateTime.Now,
                 Detalles = carrito.ToList(),
                 MetodoPago = (MetodoPago)cmbMetodoPago.SelectedIndex,
-                UsuarioId = Session.UsuarioActual.Id,
+                Id_usuario = Session.UsuarioActual.Id_usuario,
                 EfectivoRecibido = decimal.TryParse(txtEfectivo.Text, out decimal ef) ? ef : total
             };
 
             if (cmbCliente.SelectedIndex > 0 && cmbCliente.SelectedItem is Cliente cliente)
-                venta.ClienteId = cliente.Id;
+                venta.Id_cliente = cliente.Id_cliente;
 
-            int ventaId = DatabaseManager.Instance.GuardarVenta(venta);
+            int ventaId;
+            try
+            {
+                ventaId = DatabaseManager.Instance.GuardarVenta(venta);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message, "No se pudo guardar la venta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             MostrarTicket(venta, ventaId);
             LimpiarCarrito();
