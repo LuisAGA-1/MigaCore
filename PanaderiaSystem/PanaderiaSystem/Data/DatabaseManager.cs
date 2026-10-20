@@ -250,7 +250,7 @@ namespace PanaderiaSystem.Data
             var lista = new List<Usuario>();
             using (var conn = GetConnection())
             using (var reader = new NpgsqlCommand(
-                "SELECT usuario_id, nombre, username, rol, activo FROM usuarios WHERE activo IS NOT FALSE ORDER BY nombre", conn).ExecuteReader())
+                "SELECT usuario_id, nombre, username, rol, activo FROM usuarios ORDER BY activo DESC, nombre", conn).ExecuteReader())
                 while (reader.Read())
                     lista.Add(new Usuario
                     {
@@ -286,12 +286,25 @@ namespace PanaderiaSystem.Data
         /// <summary>Password vacío al editar conserva la contraseña actual.</summary>
         public void GuardarUsuario(Usuario u)
         {
+            if (string.IsNullOrWhiteSpace(u.Nombre) || string.IsNullOrWhiteSpace(u.NombreUsuario))
+                throw new ArgumentException("El nombre y el nombre de usuario son obligatorios.");
             bool cambiaPassword = !string.IsNullOrEmpty(u.Password);
             if (u.Id_usuario == 0 && !cambiaPassword)
                 throw new ArgumentException("El usuario nuevo necesita contraseña.");
+            if (cambiaPassword && u.Password.Length < 6)
+                throw new ArgumentException("La contraseña debe tener al menos 6 caracteres.");
 
             using (var conn = GetConnection())
             {
+                var existe = new NpgsqlCommand(
+                    "SELECT COUNT(*) FROM usuarios WHERE lower(username)=lower(@u) AND usuario_id<>@id", conn);
+                existe.Parameters.AddWithValue("u", u.NombreUsuario);
+                existe.Parameters.AddWithValue("id", u.Id_usuario);
+                if ((long)existe.ExecuteScalar() > 0)
+                    throw new ArgumentException($"Ya existe un usuario '{u.NombreUsuario}' (puede estar desactivado).");
+                if (u.Id_usuario != 0 && u.Rol != RolUsuario.Administrador && !QuedaOtroAdmin(conn, u.Id_usuario))
+                    throw new InvalidOperationException("Debe quedar al menos un Administrador activo.");
+
                 NpgsqlCommand cmd;
                 if (u.Id_usuario == 0)
                     cmd = new NpgsqlCommand(
@@ -303,22 +316,35 @@ namespace PanaderiaSystem.Data
                         (cambiaPassword ? ", password_hash=@p" : "") + " WHERE usuario_id=@id", conn);
                     cmd.Parameters.AddWithValue("id", u.Id_usuario);
                 }
-                cmd.Parameters.AddWithValue("n", u.Nombre);
-                cmd.Parameters.AddWithValue("u", u.NombreUsuario);
+                cmd.Parameters.AddWithValue("n", u.Nombre.Trim());
+                cmd.Parameters.AddWithValue("u", u.NombreUsuario.Trim());
                 cmd.Parameters.AddWithValue("r", u.Rol.ToString());
                 if (cambiaPassword) cmd.Parameters.AddWithValue("p", HashPassword(u.Password));
                 cmd.ExecuteNonQuery();
             }
         }
 
-        public void EliminarUsuario(int idUsuario)
+        // Baja lógica: las ventas, pedidos y cortes siguen apuntando al usuario
+        public void CambiarActivoUsuario(int idUsuario, bool activo)
         {
             using (var conn = GetConnection())
             {
-                var cmd = new NpgsqlCommand("UPDATE usuarios SET activo=FALSE WHERE usuario_id=@id", conn);
+                if (!activo && !QuedaOtroAdmin(conn, idUsuario))
+                    throw new InvalidOperationException("Debe quedar al menos un Administrador activo.");
+                var cmd = new NpgsqlCommand("UPDATE usuarios SET activo=@a WHERE usuario_id=@id", conn);
+                cmd.Parameters.AddWithValue("a", activo);
                 cmd.Parameters.AddWithValue("id", idUsuario);
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        // ¿Hay algún Administrador activo además de idUsuario?
+        private static bool QuedaOtroAdmin(NpgsqlConnection conn, int idUsuario)
+        {
+            var cmd = new NpgsqlCommand(
+                "SELECT COUNT(*) FROM usuarios WHERE rol='Administrador' AND activo IS NOT FALSE AND usuario_id<>@id", conn);
+            cmd.Parameters.AddWithValue("id", idUsuario);
+            return (long)cmd.ExecuteScalar() > 0;
         }
 
         // ==================== CATEGORIAS ====================

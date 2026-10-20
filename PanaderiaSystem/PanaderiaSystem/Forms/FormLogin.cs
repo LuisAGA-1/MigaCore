@@ -104,18 +104,8 @@ namespace PanaderiaSystem.Forms
             btnLogin.FlatAppearance.BorderSize = 0;
             btnLogin.Click += (s, e) => Ingresar();
 
-            var lblDemo = new Label
-            {
-                Text = "Admin: admin / admin123  |  Cajero: cajero / cajero123",
-                Location = new Point(20, 405),
-                Width = 380,
-                Font = new Font("Segoe UI", 7),
-                ForeColor = Color.Gray,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-
             this.Controls.AddRange(new Control[] {
-                panelTop, lblU, txtUsuario, lblP, txtPassword, lblError, btnLogin, lblDemo
+                panelTop, lblU, txtUsuario, lblP, txtPassword, lblError, btnLogin
             });
         }
 
