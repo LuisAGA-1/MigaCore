@@ -174,6 +174,7 @@ namespace PanaderiaSystem.Forms
         private DataGridView dgv;
         private TextBox txtNombre, txtUsuario, txtPassword;
         private ComboBox cmbRol;
+        private Button btnElim;
         private Usuario usuarioActual;
 
         public UC_Usuarios() { InitializeComponent(); Cargar(); }
@@ -202,12 +203,14 @@ namespace PanaderiaSystem.Forms
             dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Nombre", DataPropertyName = "Nombre" });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Usuario", DataPropertyName = "NombreUsuario" });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Rol", DataPropertyName = "Rol" });
+            dgv.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Activo", DataPropertyName = "Activo", FillWeight = 40 });
             dgv.SelectionChanged += (s, e) => {
                 if (dgv.CurrentRow?.DataBoundItem is Usuario u)
                 {
                     usuarioActual = u;
                     txtNombre.Text = u.Nombre; txtUsuario.Text = u.NombreUsuario;
                     txtPassword.Clear(); cmbRol.SelectedIndex = (int)u.Rol;
+                    btnElim.Text = u.Activo ? "🚫 Desactivar" : "✅ Reactivar";
                 }
             };
 
@@ -232,24 +235,34 @@ namespace PanaderiaSystem.Forms
 
             var btnNuevo = new Button { Text = "➕ Nuevo", Location = new Point(15, y + 10), Width = 90, Height = 38, BackColor = Color.FromArgb(21, 101, 192), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
             var btnGuardar = new Button { Text = "💾 Guardar", Location = new Point(115, y + 10), Width = 100, Height = 38, BackColor = Color.FromArgb(46, 125, 50), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
-            var btnElim = new Button { Text = "🗑 Eliminar", Location = new Point(225, y + 10), Width = 95, Height = 38, BackColor = Color.FromArgb(180, 60, 40), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
+            btnElim = new Button { Text = "🚫 Desactivar", Location = new Point(225, y + 10), Width = 110, Height = 38, BackColor = Color.FromArgb(180, 60, 40), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand };
             foreach (var b in new[] { btnNuevo, btnGuardar, btnElim }) b.FlatAppearance.BorderSize = 0;
 
-            btnNuevo.Click += (s, e) => { usuarioActual = null; txtNombre.Clear(); txtUsuario.Clear(); txtPassword.Clear(); cmbRol.SelectedIndex = 1; txtNombre.Focus(); };
+            btnNuevo.Click += (s, e) => { usuarioActual = null; txtNombre.Clear(); txtUsuario.Clear(); txtPassword.Clear(); cmbRol.SelectedIndex = 1; btnElim.Text = "🚫 Desactivar"; txtNombre.Focus(); };
             btnGuardar.Click += (s, e) => {
-                if (string.IsNullOrWhiteSpace(txtNombre.Text) || string.IsNullOrWhiteSpace(txtUsuario.Text)) { MessageBox.Show("Llena todos los campos."); return; }
-                if (usuarioActual == null && txtPassword.Text.Length == 0) { MessageBox.Show("El usuario nuevo necesita contraseña."); return; }
-                var u = usuarioActual ?? new Usuario();
-                u.Nombre = txtNombre.Text.Trim(); u.NombreUsuario = txtUsuario.Text.Trim();
-                u.Password = txtPassword.Text; u.Rol = (RolUsuario)cmbRol.SelectedIndex;
-                DatabaseManager.Instance.GuardarUsuario(u);
+                var rol = (RolUsuario)cmbRol.SelectedIndex;
+                // Cambiar el propio rol dejaría la sesión abierta con permisos viejos
+                if (usuarioActual?.Id_usuario == Session.UsuarioActual.Id_usuario && rol != usuarioActual.Rol)
+                { MessageBox.Show("No puedes cambiar tu propio rol."); return; }
+                var u = new Usuario
+                {
+                    Id_usuario = usuarioActual?.Id_usuario ?? 0,
+                    Nombre = txtNombre.Text, NombreUsuario = txtUsuario.Text,
+                    Password = txtPassword.Text, Rol = rol
+                };
+                try { DatabaseManager.Instance.GuardarUsuario(u); }
+                catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+                { MessageBox.Show(ex.Message, "No se guardó", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
                 Cargar(); MessageBox.Show("Usuario guardado.", "✅");
             };
             btnElim.Click += (s, e) => {
                 if (usuarioActual == null) return;
-                if (usuarioActual.NombreUsuario == "admin") { MessageBox.Show("No puedes eliminar el administrador principal."); return; }
-                if (MessageBox.Show($"¿Eliminar a {usuarioActual.Nombre}?", "Confirmar", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                { DatabaseManager.Instance.EliminarUsuario(usuarioActual.Id_usuario); Cargar(); }
+                if (usuarioActual.Id_usuario == Session.UsuarioActual.Id_usuario) { MessageBox.Show("No puedes desactivar tu propia cuenta."); return; }
+                bool activar = !usuarioActual.Activo;
+                if (MessageBox.Show($"¿{(activar ? "Reactivar" : "Desactivar")} a {usuarioActual.Nombre}?", "Confirmar", MessageBoxButtons.YesNo) != DialogResult.Yes) return;
+                try { DatabaseManager.Instance.CambiarActivoUsuario(usuarioActual.Id_usuario, activar); }
+                catch (InvalidOperationException ex) { MessageBox.Show(ex.Message, "No se cambió", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+                Cargar();
             };
             panelForm.Controls.AddRange(new Control[] { btnNuevo, btnGuardar, btnElim });
 
