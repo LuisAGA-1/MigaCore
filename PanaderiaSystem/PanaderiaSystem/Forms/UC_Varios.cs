@@ -17,12 +17,13 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
+            this.Size = new Size(960, 600);  // lienzo de diseño: los Anchor se miden contra este tamaño
             this.BackColor = Color.FromArgb(245, 240, 230);
             var lblTitulo = new Label { Text = "👥 Clientes Frecuentes", Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.FromArgb(100, 60, 20), Location = new Point(10, 5), AutoSize = true };
 
             dgv = new DataGridView
             {
-                Location = new Point(10, 45), Size = new Size(590, 500),
+                Location = new Point(10, 45), Size = new Size(590, 545), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 BackgroundColor = Color.White, BorderStyle = BorderStyle.None,
@@ -41,7 +42,7 @@ namespace PanaderiaSystem.Forms
                 }
             };
 
-            var panelForm = new Panel { Location = new Point(615, 45), Size = new Size(340, 500), BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
+            var panelForm = new Panel { Location = new Point(615, 45), Size = new Size(340, 545), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right, BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
             int y = 15;
             var flds = new (string lbl, TextBox tb)[] {
                 ("Nombre:", txtNombre = new TextBox { Width = 295, Font = new Font("Segoe UI", 11) }),
@@ -90,12 +91,13 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
+            this.Size = new Size(960, 600);  // lienzo de diseño: los Anchor se miden contra este tamaño
             this.BackColor = Color.FromArgb(245, 240, 230);
             var lblTitulo = new Label { Text = "🏭 Registro de Producción", Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.FromArgb(100, 60, 20), Location = new Point(10, 5), AutoSize = true };
 
             dgv = new DataGridView
             {
-                Location = new Point(10, 45), Size = new Size(590, 500),
+                Location = new Point(10, 45), Size = new Size(590, 545), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 BackgroundColor = Color.White, BorderStyle = BorderStyle.None,
@@ -116,7 +118,7 @@ namespace PanaderiaSystem.Forms
                     dgv.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.FromArgb(255, 240, 180);
             };
 
-            var panelForm = new Panel { Location = new Point(615, 45), Size = new Size(340, 350), BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
+            var panelForm = new Panel { Location = new Point(615, 45), Size = new Size(340, 350), Anchor = AnchorStyles.Top | AnchorStyles.Right, BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
 
             panelForm.Controls.Add(new Label { Text = "Fecha:", Location = new Point(15, 15), AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold) });
             dtpFecha = new DateTimePicker { Location = new Point(15, 35), Width = 290, Font = new Font("Segoe UI", 10) };
@@ -153,7 +155,7 @@ namespace PanaderiaSystem.Forms
             panelForm.Controls.Add(btnGuardar);
 
             // Info tip
-            var lblTip = new Panel { Location = new Point(615, 405), Size = new Size(340, 140), BackColor = Color.FromArgb(230, 245, 255), BorderStyle = BorderStyle.FixedSingle };
+            var lblTip = new Panel { Location = new Point(615, 405), Size = new Size(340, 140), Anchor = AnchorStyles.Top | AnchorStyles.Right, BackColor = Color.FromArgb(230, 245, 255), BorderStyle = BorderStyle.FixedSingle };
             lblTip.Controls.Add(new Label
             {
                 Text = "💡 Tip: Las filas en amarillo indican productos con sobrante mayor a 20 piezas. Considera ajustar tu producción para esos días.",
@@ -181,6 +183,7 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
+            this.Size = new Size(960, 600);  // lienzo de diseño: los Anchor se miden contra este tamaño
             this.BackColor = Color.FromArgb(245, 240, 230);
             var lblTitulo = new Label { Text = "👤 Gestión de Usuarios", Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.FromArgb(100, 60, 20), Location = new Point(10, 5), AutoSize = true };
 
@@ -193,7 +196,7 @@ namespace PanaderiaSystem.Forms
 
             dgv = new DataGridView
             {
-                Location = new Point(10, 45), Size = new Size(560, 500),
+                Location = new Point(10, 45), Size = new Size(560, 545), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 BackgroundColor = Color.White, BorderStyle = BorderStyle.None,
@@ -214,7 +217,7 @@ namespace PanaderiaSystem.Forms
                 }
             };
 
-            var panelForm = new Panel { Location = new Point(585, 45), Size = new Size(370, 400), BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
+            var panelForm = new Panel { Location = new Point(585, 45), Size = new Size(370, 400), Anchor = AnchorStyles.Top | AnchorStyles.Right, BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle };
             int y = 15;
             var flds = new (string lbl, Control ctrl)[] {
                 ("Nombre completo:", txtNombre = new TextBox { Width = 320, Font = new Font("Segoe UI", 11) }),

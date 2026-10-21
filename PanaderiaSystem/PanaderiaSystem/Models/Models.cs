@@ -15,6 +15,7 @@ namespace PanaderiaSystem.Models
         public string Password { get; set; }
         public RolUsuario Rol { get; set; }
         public bool Activo { get; set; } = true;
+        public bool DebeCambiarPassword { get; set; }
     }
 
     // ==================== PRODUCTOS ====================

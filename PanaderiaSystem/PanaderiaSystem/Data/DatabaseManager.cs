@@ -59,6 +59,7 @@ namespace PanaderiaSystem.Data
                     password_hash VARCHAR(256) NOT NULL,
                     rol VARCHAR(20) NOT NULL,
                     activo BOOLEAN NOT NULL DEFAULT TRUE,
+                    debe_cambiar_password BOOLEAN NOT NULL DEFAULT FALSE,
                     creado_en TIMESTAMPTZ NOT NULL DEFAULT now()
                 );
 
@@ -176,6 +177,7 @@ namespace PanaderiaSystem.Data
 
                 -- Tablas creadas a mano pueden no tener estos valores por omisión
                 ALTER TABLE usuarios ALTER COLUMN activo SET DEFAULT TRUE, ALTER COLUMN creado_en SET DEFAULT now();
+                ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS debe_cambiar_password BOOLEAN NOT NULL DEFAULT FALSE;
                 ALTER TABLE categorias ALTER COLUMN activa SET DEFAULT TRUE, ALTER COLUMN color_hex SET DEFAULT '#D4A857';
                 ALTER TABLE clientes ALTER COLUMN activo SET DEFAULT TRUE, ALTER COLUMN registrado_en SET DEFAULT now();
                 ALTER TABLE productos ALTER COLUMN activo SET DEFAULT TRUE, ALTER COLUMN stock SET DEFAULT 0, ALTER COLUMN stock_minimo SET DEFAULT 0;
@@ -185,38 +187,21 @@ namespace PanaderiaSystem.Data
             }
         }
 
+        // Base nueva: solo un admin con contraseña temporal que se cambia en el primer inicio.
+        // Los datos de ejemplo para clase están en docs/datos-demo.sql.
         private void InsertarDatosIniciales(NpgsqlConnection conn)
         {
             if ((long)new NpgsqlCommand("SELECT COUNT(*) FROM usuarios", conn).ExecuteScalar() > 0) return;
 
             var cmd = new NpgsqlCommand(@"
-                INSERT INTO usuarios (nombre, username, password_hash, rol) VALUES
-                ('Administrador', 'admin', @pa, 'Administrador'),
-                ('Cajero Demo', 'cajero', @pc, 'Cajero');
+                INSERT INTO usuarios (nombre, username, password_hash, rol, debe_cambiar_password)
+                VALUES ('Administrador', 'admin', @pa, 'Administrador', TRUE);
 
                 INSERT INTO categorias (nombre, color_hex) VALUES
                 ('Pan Dulce', '#E8956D'), ('Pan Salado', '#D4A857'), ('Pasteles', '#C17BB5'),
                 ('Bebidas', '#7BB5C1'), ('Empaquetados', '#7BC18E')
-                ON CONFLICT (nombre) DO NOTHING;
-
-                INSERT INTO productos (nombre, precio, categoria_id)
-                SELECT v.nombre, v.precio, c.categoria_id
-                FROM (VALUES
-                    ('Concha', 8.00, 'Pan Dulce'), ('Polvorón', 6.00, 'Pan Dulce'), ('Cuerno', 7.00, 'Pan Dulce'),
-                    ('Mantecada', 5.00, 'Pan Dulce'), ('Bolillo', 2.50, 'Pan Salado'), ('Telera', 3.00, 'Pan Salado'),
-                    ('Pan de Hot Dog', 4.00, 'Pan Salado'), ('Dona Glaseada', 12.00, 'Pan Dulce'),
-                    ('Pastel de Chocolate (rebanada)', 45.00, 'Pasteles'), ('Café de Olla', 20.00, 'Bebidas')
-                ) AS v(nombre, precio, categoria)
-                JOIN categorias c ON c.nombre = v.categoria
-                WHERE NOT EXISTS (SELECT 1 FROM productos);
-
-                INSERT INTO ingredientes (nombre, cantidad_disponible, unidad_medida, cantidad_minima) VALUES
-                ('Harina', 50.0, 'kg', 10.0), ('Azúcar', 20.0, 'kg', 5.0), ('Mantequilla', 10.0, 'kg', 2.0),
-                ('Levadura', 5.0, 'kg', 1.0), ('Huevo', 200, 'pz', 30), ('Chocolate', 5.0, 'kg', 1.0),
-                ('Leche', 20.0, 'lt', 5.0)
                 ON CONFLICT (nombre) DO NOTHING;", conn);
             cmd.Parameters.AddWithValue("pa", HashPassword("admin123"));
-            cmd.Parameters.AddWithValue("pc", HashPassword("cajero123"));
             cmd.ExecuteNonQuery();
         }
 
@@ -268,7 +253,7 @@ namespace PanaderiaSystem.Data
             using (var conn = GetConnection())
             {
                 var cmd = new NpgsqlCommand(
-                    "SELECT usuario_id, nombre, username, rol, password_hash FROM usuarios WHERE username=@u AND activo IS NOT FALSE", conn);
+                    "SELECT usuario_id, nombre, username, rol, password_hash, debe_cambiar_password FROM usuarios WHERE username=@u AND activo IS NOT FALSE", conn);
                 cmd.Parameters.AddWithValue("u", usuario);
                 using (var reader = cmd.ExecuteReader())
                     if (reader.Read() && VerificarPassword(password, reader.GetString(4)))
@@ -277,10 +262,25 @@ namespace PanaderiaSystem.Data
                             Id_usuario = reader.GetInt32(0),
                             Nombre = reader.GetString(1),
                             NombreUsuario = reader.GetString(2),
-                            Rol = (RolUsuario)Enum.Parse(typeof(RolUsuario), reader.GetString(3))
+                            Rol = (RolUsuario)Enum.Parse(typeof(RolUsuario), reader.GetString(3)),
+                            DebeCambiarPassword = reader.GetBoolean(5)
                         };
             }
             return null;
+        }
+
+        public void CambiarPassword(int idUsuario, string nueva)
+        {
+            if (string.IsNullOrEmpty(nueva) || nueva.Length < 6)
+                throw new ArgumentException("La contraseña debe tener al menos 6 caracteres.");
+            using (var conn = GetConnection())
+            {
+                var cmd = new NpgsqlCommand(
+                    "UPDATE usuarios SET password_hash=@p, debe_cambiar_password=FALSE WHERE usuario_id=@id", conn);
+                cmd.Parameters.AddWithValue("p", HashPassword(nueva));
+                cmd.Parameters.AddWithValue("id", idUsuario);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         /// <summary>Password vacío al editar conserva la contraseña actual.</summary>
@@ -308,7 +308,7 @@ namespace PanaderiaSystem.Data
                 NpgsqlCommand cmd;
                 if (u.Id_usuario == 0)
                     cmd = new NpgsqlCommand(
-                        "INSERT INTO usuarios (nombre, username, password_hash, rol) VALUES (@n,@u,@p,@r)", conn);
+                        "INSERT INTO usuarios (nombre, username, password_hash, rol, debe_cambiar_password) VALUES (@n,@u,@p,@r,TRUE)", conn);
                 else
                 {
                     cmd = new NpgsqlCommand(
@@ -656,6 +656,34 @@ namespace PanaderiaSystem.Data
 
                 tx.Commit();  // sin Commit, el Dispose de tx hace rollback
                 return ventaId;
+            }
+        }
+
+        // Venta hecha por error o mal cobrada: se borra y los ingredientes regresan al inventario
+        public void EliminarVenta(int idVenta, string motivo)
+        {
+            if (!Session.EsAdmin)
+                throw new UnauthorizedAccessException("Solo el Administrador puede eliminar ventas.");
+            using (var conn = GetConnection())
+            using (var tx = conn.BeginTransaction())
+            {
+                var detalles = new List<DetalleVenta>();
+                var cmdD = new NpgsqlCommand("SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id=@id", conn, tx);
+                cmdD.Parameters.AddWithValue("id", idVenta);
+                using (var reader = cmdD.ExecuteReader())
+                    while (reader.Read())
+                        detalles.Add(new DetalleVenta { Id_producto = reader.GetInt32(0), Cantidad = reader.GetInt32(1) });
+
+                foreach (var kv in CalcularConsumo(conn, tx, detalles))
+                    RegistrarMovimiento(conn, tx, kv.Key, "Cancelación", kv.Value,
+                        $"Venta #{idVenta} eliminada por {Session.UsuarioActual.Nombre}: {motivo}");
+
+                var cmd = new NpgsqlCommand(@"
+                    DELETE FROM detalle_ventas WHERE venta_id=@id;
+                    DELETE FROM ventas WHERE venta_id=@id;", conn, tx);
+                cmd.Parameters.AddWithValue("id", idVenta);
+                cmd.ExecuteNonQuery();
+                tx.Commit();
             }
         }
 

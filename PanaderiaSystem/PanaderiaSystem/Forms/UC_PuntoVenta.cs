@@ -29,6 +29,7 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
+            this.Size = new Size(960, 600);  // lienzo de diseño: los Anchor se miden contra este tamaño
             this.BackColor = Color.FromArgb(245, 240, 230);
 
             // === TÍTULO ===
@@ -45,7 +46,8 @@ namespace PanaderiaSystem.Forms
             var panelIzq = new Panel
             {
                 Location = new Point(10, 40),
-                Size = new Size(580, 580),
+                Size = new Size(565, 555),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -84,10 +86,16 @@ namespace PanaderiaSystem.Forms
             panelProductos = new FlowLayoutPanel
             {
                 Location = new Point(0, 38),
-                Size = new Size(578, 538),
+                Size = new Size(563, 515),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AutoScroll = true,
                 BackColor = Color.FromArgb(248, 245, 238),
                 WrapContents = true
+            };
+            // Las barras de categoría ocupan todo el ancho para que sus panes queden debajo
+            panelProductos.Resize += (s, e) => {
+                foreach (Control c in panelProductos.Controls)
+                    if (Equals(c.Tag, "categoria")) c.Width = AnchoCategoria();
             };
 
             panelIzq.Controls.AddRange(new Control[] {
@@ -97,8 +105,9 @@ namespace PanaderiaSystem.Forms
             // === PANEL DERECHO - Carrito ===
             var panelDer = new Panel
             {
-                Location = new Point(600, 40),
-                Size = new Size(370, 580),
+                Location = new Point(585, 40),
+                Size = new Size(370, 555),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -130,7 +139,8 @@ namespace PanaderiaSystem.Forms
             dgvCarrito = new DataGridView
             {
                 Location = new Point(5, 40),
-                Size = new Size(358, 230),
+                Size = new Size(358, 205),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 ReadOnly = false,
@@ -150,7 +160,8 @@ namespace PanaderiaSystem.Forms
             var btnQuitarItem = new Button
             {
                 Text = "❌ Quitar seleccionado",
-                Location = new Point(5, 275),
+                Location = new Point(5, 250),
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Left,
                 Width = 160,
                 Height = 30,
                 BackColor = Color.FromArgb(180, 60, 40),
@@ -164,8 +175,9 @@ namespace PanaderiaSystem.Forms
             // Panel de pago
             panelPago = new Panel
             {
-                Location = new Point(5, 310),
+                Location = new Point(5, 285),
                 Size = new Size(358, 260),
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Left,
                 BackColor = Color.FromArgb(248, 245, 238),
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -283,7 +295,8 @@ namespace PanaderiaSystem.Forms
                 var lblCat = new Label
                 {
                     Text = cat,
-                    Width = 560,
+                    Tag = "categoria",
+                    Width = AnchoCategoria(),
                     Height = 22,
                     BackColor = coloresCategoria[iColor % coloresCategoria.Length],
                     ForeColor = Color.White,
@@ -293,14 +306,21 @@ namespace PanaderiaSystem.Forms
                     Margin = new Padding(0)
                 };
                 panelProductos.Controls.Add(lblCat);
+                panelProductos.SetFlowBreak(lblCat, true);
                 iColor++;
 
+                Control ultimo = null;
                 foreach (var p in productos.Where(pr => pr.CategoriaNombre == cat))
                 {
-                    panelProductos.Controls.Add(CrearBtnProducto(p));
+                    ultimo = CrearBtnProducto(p);
+                    panelProductos.Controls.Add(ultimo);
                 }
+                if (ultimo != null) panelProductos.SetFlowBreak(ultimo, true);  // la siguiente categoría empieza en fila nueva
             }
         }
+
+        // Ancho visible menos la barra de desplazamiento vertical
+        private int AnchoCategoria() => Math.Max(100, panelProductos.ClientSize.Width - SystemInformation.VerticalScrollBarWidth - 4);
 
         private Button CrearBtnProducto(Producto p)
         {
@@ -472,7 +492,7 @@ namespace PanaderiaSystem.Forms
         {
             var sb = new StringBuilder();
             sb.AppendLine("╔══════════════════════════╗");
-            sb.AppendLine("║      🥐 PANADERÍA        ║");
+            sb.AppendLine("║      🥐 MIGACORE         ║");
             sb.AppendLine("║   Sistema de Ventas      ║");
             sb.AppendLine("╚══════════════════════════╝");
             sb.AppendLine();
