@@ -24,6 +24,7 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
+            this.Size = new Size(960, 600);  // lienzo de diseño: los Anchor se miden contra este tamaño
             this.BackColor = Color.FromArgb(245, 240, 230);
             var fuente = new Font("Segoe UI", 10);
             var lblTitulo = new Label { Text = "📋 Pedidos", Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.FromArgb(100, 60, 20), Location = new Point(10, 5), AutoSize = true };
@@ -36,7 +37,7 @@ namespace PanaderiaSystem.Forms
 
             dgv = new DataGridView
             {
-                Location = new Point(10, 45), Size = new Size(590, 500),
+                Location = new Point(10, 45), Size = new Size(590, 545), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false, AllowUserToDeleteRows = false, ReadOnly = true,
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 BackgroundColor = Color.White, BorderStyle = BorderStyle.None,
@@ -52,7 +53,7 @@ namespace PanaderiaSystem.Forms
             dgv.SelectionChanged += (s, e) => { if (dgv.CurrentRow?.DataBoundItem is Pedido p) Mostrar(p); };
 
             // === Formulario ===
-            var panelForm = new Panel { Location = new Point(615, 45), Size = new Size(340, 560), BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle, AutoScroll = true };
+            var panelForm = new Panel { Location = new Point(615, 45), Size = new Size(340, 545), Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right, BackColor = Color.White, BorderStyle = BorderStyle.FixedSingle, AutoScroll = true };
             int y = 10;
             Control Campo(string texto, Control ctrl)
             {

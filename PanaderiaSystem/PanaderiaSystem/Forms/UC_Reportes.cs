@@ -25,6 +25,7 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
+            this.Size = new Size(960, 600);  // lienzo de diseño: los Anchor se miden contra este tamaño
             this.BackColor = Color.FromArgb(245, 240, 230);
 
             var lblTitulo = new Label
@@ -40,6 +41,7 @@ namespace PanaderiaSystem.Forms
             {
                 Location = new Point(10, 40),
                 Size = new Size(940, 50),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -92,6 +94,7 @@ namespace PanaderiaSystem.Forms
             {
                 Location = new Point(10, 100),
                 Size = new Size(940, 80),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -127,7 +130,8 @@ namespace PanaderiaSystem.Forms
             var tabs = new TabControl
             {
                 Location = new Point(10, 190),
-                Size = new Size(940, 355),
+                Size = new Size(940, 400),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 Font = new Font("Segoe UI", 10)
             };
 
@@ -138,6 +142,20 @@ namespace PanaderiaSystem.Forms
             });
             dgvVentas.Dock = DockStyle.Fill;
             tabVentas.Controls.Add(dgvVentas);
+
+            var btnEliminar = new Button
+            {
+                Text = "🗑 Eliminar venta seleccionada",
+                Dock = DockStyle.Bottom,
+                Height = 36,
+                BackColor = Color.FromArgb(180, 60, 40),
+                ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Cursor = Cursors.Hand,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Visible = Session.EsAdmin
+            };
+            btnEliminar.FlatAppearance.BorderSize = 0;
+            btnEliminar.Click += (s, e) => EliminarVentaSeleccionada();
+            tabVentas.Controls.Add(btnEliminar);
 
             var tabProductos = new TabPage("🏆 Productos más vendidos");
             dgvProductos = new DataGridView
@@ -193,6 +211,50 @@ namespace PanaderiaSystem.Forms
             return dgv;
         }
 
+        private void EliminarVentaSeleccionada()
+        {
+            if (!(dgvVentas.CurrentRow?.DataBoundItem is Venta v))
+            {
+                MessageBox.Show("Selecciona una venta en el historial.", "Eliminar venta", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            string motivo = PedirMotivo($"Venta #{v.Id_venta:D6}  ·  {v.Fecha:g}  ·  {v.Total:C2}  ·  {v.UsuarioNombre}");
+            if (motivo == null) return;
+            try
+            {
+                DatabaseManager.Instance.EliminarVenta(v.Id_venta, motivo);
+                ActualizarReporte();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show(ex.Message, "Eliminar venta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        // null = cancelado; el motivo queda en el historial de inventario
+        private string PedirMotivo(string resumen)
+        {
+            using (var form = new Form
+            {
+                Text = "Eliminar venta",
+                Size = new Size(420, 230),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false, MinimizeBox = false
+            })
+            {
+                var lbl = new Label { Text = resumen + "\n\n¿Por qué se elimina? (obligatorio)", Location = new Point(15, 12), Size = new Size(375, 60), Font = new Font("Segoe UI", 9) };
+                var txt = new TextBox { Location = new Point(15, 78), Width = 375, Font = new Font("Segoe UI", 10) };
+                var btnOk = new Button { Text = "Eliminar", Location = new Point(195, 125), Size = new Size(95, 32), BackColor = Color.FromArgb(180, 60, 40), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+                var btnCancel = new Button { Text = "Cancelar", Location = new Point(295, 125), Size = new Size(95, 32), DialogResult = DialogResult.Cancel };
+                btnOk.Click += (s, e) => { if (txt.Text.Trim().Length > 0) form.DialogResult = DialogResult.OK; };
+                form.AcceptButton = btnOk;
+                form.CancelButton = btnCancel;
+                form.Controls.AddRange(new Control[] { lbl, txt, btnOk, btnCancel });
+                return form.ShowDialog(this) == DialogResult.OK ? txt.Text.Trim() : null;
+            }
+        }
+
         private void ActualizarReporte()
         {
             var ventas = DatabaseManager.Instance.ObtenerVentas(dtpDesde.Value.Date, dtpHasta.Value.Date);
@@ -225,7 +287,7 @@ namespace PanaderiaSystem.Forms
 
             var sb = new StringBuilder();
             sb.AppendLine("╔════════════════════════════════╗");
-            sb.AppendLine("║     🥐 PANADERÍA SISTEMA       ║");
+            sb.AppendLine("║     🥐 MIGACORE                ║");
             sb.AppendLine("║      CORTE DE CAJA             ║");
             sb.AppendLine("╚════════════════════════════════╝");
             sb.AppendLine();

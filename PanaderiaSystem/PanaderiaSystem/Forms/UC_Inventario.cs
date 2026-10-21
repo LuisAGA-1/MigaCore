@@ -22,6 +22,7 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
+            this.Size = new Size(960, 600);  // lienzo de diseño: los Anchor se miden contra este tamaño
             this.BackColor = Color.FromArgb(245, 240, 230);
 
             var lblTitulo = new Label
@@ -37,6 +38,7 @@ namespace PanaderiaSystem.Forms
             {
                 Location = new Point(10, 40),
                 Size = new Size(940, 35),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = Color.FromArgb(255, 245, 200),
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -53,7 +55,8 @@ namespace PanaderiaSystem.Forms
             dgv = new DataGridView
             {
                 Location = new Point(10, 85),
-                Size = new Size(580, 460),
+                Size = new Size(580, 505),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
                 ReadOnly = true,
@@ -85,7 +88,8 @@ namespace PanaderiaSystem.Forms
             var panelForm = new Panel
             {
                 Location = new Point(605, 85),
-                Size = new Size(350, 460),
+                Size = new Size(350, 505),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right,
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };

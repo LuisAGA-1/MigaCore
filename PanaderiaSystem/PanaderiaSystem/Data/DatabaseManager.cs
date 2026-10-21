@@ -659,6 +659,34 @@ namespace PanaderiaSystem.Data
             }
         }
 
+        // Venta hecha por error o mal cobrada: se borra y los ingredientes regresan al inventario
+        public void EliminarVenta(int idVenta, string motivo)
+        {
+            if (!Session.EsAdmin)
+                throw new UnauthorizedAccessException("Solo el Administrador puede eliminar ventas.");
+            using (var conn = GetConnection())
+            using (var tx = conn.BeginTransaction())
+            {
+                var detalles = new List<DetalleVenta>();
+                var cmdD = new NpgsqlCommand("SELECT producto_id, cantidad FROM detalle_ventas WHERE venta_id=@id", conn, tx);
+                cmdD.Parameters.AddWithValue("id", idVenta);
+                using (var reader = cmdD.ExecuteReader())
+                    while (reader.Read())
+                        detalles.Add(new DetalleVenta { Id_producto = reader.GetInt32(0), Cantidad = reader.GetInt32(1) });
+
+                foreach (var kv in CalcularConsumo(conn, tx, detalles))
+                    RegistrarMovimiento(conn, tx, kv.Key, "Cancelación", kv.Value,
+                        $"Venta #{idVenta} eliminada por {Session.UsuarioActual.Nombre}: {motivo}");
+
+                var cmd = new NpgsqlCommand(@"
+                    DELETE FROM detalle_ventas WHERE venta_id=@id;
+                    DELETE FROM ventas WHERE venta_id=@id;", conn, tx);
+                cmd.Parameters.AddWithValue("id", idVenta);
+                cmd.ExecuteNonQuery();
+                tx.Commit();
+            }
+        }
+
         // Rango [desde, hasta+1día) en hora local; null = sin límite
         private static string FiltroFechas(NpgsqlCommand cmd, string columna, DateTime? desde, DateTime? hasta)
         {

@@ -22,11 +22,12 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
-            this.Text = "Sistema Panadería";
+            this.Text = "MigaCore";
+            this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
             this.Size = new Size(1200, 750);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.BackColor = Color.FromArgb(245, 240, 230);
-            this.MinimumSize = new Size(1100, 650);
+            this.MinimumSize = new Size(1180, 720);
 
             // === HEADER ===
             panelHeader = new Panel
@@ -36,12 +37,21 @@ namespace PanaderiaSystem.Forms
                 BackColor = Color.FromArgb(139, 90, 43)
             };
 
+            var picLogo = new PictureBox
+            {
+                Image = Image.FromStream(GetType().Assembly.GetManifestResourceStream("logo-migacore.png")),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Size = new Size(44, 44),
+                Location = new Point(12, 8),
+                BackColor = Color.Transparent
+            };
+
             var lblLogo = new Label
             {
-                Text = "🥐 Sistema Panadería",
+                Text = "MigaCore",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = Color.White,
-                Location = new Point(15, 12),
+                Location = new Point(62, 14),
                 AutoSize = true
             };
 
@@ -77,7 +87,7 @@ namespace PanaderiaSystem.Forms
                 btnSalir.Left = panelHeader.Width - 130;
             };
 
-            panelHeader.Controls.AddRange(new Control[] { lblLogo, lblUsuarioActual, btnSalir });
+            panelHeader.Controls.AddRange(new Control[] { picLogo, lblLogo, lblUsuarioActual, btnSalir });
 
             // === MENÚ LATERAL ===
             panelMenu = new Panel

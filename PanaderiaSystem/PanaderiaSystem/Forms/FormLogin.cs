@@ -18,7 +18,8 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
-            this.Text = "Sistema Panadería - Iniciar Sesión";
+            this.Text = "MigaCore - Iniciar Sesión";
+            this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
             this.Size = new Size(420, 500);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -33,19 +34,18 @@ namespace PanaderiaSystem.Forms
                 BackColor = Color.FromArgb(139, 90, 43)
             };
 
-            var lblIcono = new Label
+            var picLogo = new PictureBox
             {
-                Text = "🥐",
-                Font = new Font("Segoe UI Emoji", 42),
-                ForeColor = Color.White,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Location = new Point(0, 15),
-                Width = 420
+                Image = Image.FromStream(GetType().Assembly.GetManifestResourceStream("logo-migacore.png")),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Size = new Size(72, 72),
+                Location = new Point((420 - 72) / 2, 12),
+                BackColor = Color.Transparent
             };
 
             var lblTitulo = new Label
             {
-                Text = "PANADERÍA SISTEMA",
+                Text = "MIGACORE",
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = Color.FromArgb(255, 220, 150),
                 TextAlign = ContentAlignment.MiddleCenter,
@@ -53,7 +53,7 @@ namespace PanaderiaSystem.Forms
                 Width = 420
             };
 
-            panelTop.Controls.Add(lblIcono);
+            panelTop.Controls.Add(picLogo);
             panelTop.Controls.Add(lblTitulo);
 
             // Campos

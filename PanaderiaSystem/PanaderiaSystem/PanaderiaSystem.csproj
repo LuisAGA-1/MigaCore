@@ -8,9 +8,13 @@
     <ProjectGuid>{E7FCB4B0-2BC5-4CD2-97C4-A67A1C6F89B9}</ProjectGuid>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <ApplicationIcon>Resources\migacore.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="8.0.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\logo-migacore.png" LogicalName="logo-migacore.png" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Configuration" />

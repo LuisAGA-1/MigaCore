@@ -19,8 +19,11 @@ namespace PanaderiaSystem.Forms
             GenerarGraficas();
         }
 
+        private Action acomodarGraficas;  // reparte las gráficas según el tamaño del panel
+
         private void InitializeComponent()
         {
+            this.Size = new Size(960, 600);  // lienzo de diseño: los Anchor se miden contra este tamaño
             this.BackColor = Color.FromArgb(245, 240, 230);
 
             var lblTitulo = new Label
@@ -58,11 +61,13 @@ namespace PanaderiaSystem.Forms
             panelGraficas = new Panel
             {
                 Location = new Point(10, 80),
-                Size = new Size(940, 470),
+                Size = new Size(940, 510),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AutoScroll = true,
                 BackColor = Color.FromArgb(245, 240, 230)
             };
 
+            panelGraficas.Resize += (s, e) => acomodarGraficas?.Invoke();
             this.Controls.AddRange(new Control[] { lblTitulo, lblPeriodo, cmbPeriodo, btnRefresh, panelGraficas });
         }
 
@@ -152,6 +157,16 @@ namespace PanaderiaSystem.Forms
             }
 
             panelGraficas.Controls.AddRange(new Control[] { grafica1, grafica2, grafica3, panelKpi });
+
+            acomodarGraficas = () =>
+            {
+                int w = panelGraficas.ClientSize.Width, alto = Math.Max(220, panelGraficas.ClientSize.Height / 2 - 5);
+                grafica1.SetBounds(0, 0, w / 2 - 3, alto);
+                grafica2.SetBounds(w / 2 + 2, 0, w - w / 2 - 2, alto);
+                grafica3.SetBounds(0, alto + 10, 300, alto);
+                panelKpi.SetBounds(310, alto + 10, Math.Max(625, w - 310), alto);
+            };
+            acomodarGraficas();
         }
     }
 
@@ -165,6 +180,7 @@ namespace PanaderiaSystem.Forms
 
         public GraficaBarras()
         {
+            ResizeRedraw = true;
             this.BackColor = Color.White;
             this.BorderStyle = BorderStyle.FixedSingle;
         }
@@ -238,6 +254,7 @@ namespace PanaderiaSystem.Forms
 
         public GraficaBarrasHorizontal()
         {
+            ResizeRedraw = true;
             this.BackColor = Color.White;
             this.BorderStyle = BorderStyle.FixedSingle;
         }
@@ -289,6 +306,7 @@ namespace PanaderiaSystem.Forms
 
         public GraficaPastel()
         {
+            ResizeRedraw = true;
             this.BackColor = Color.White;
             this.BorderStyle = BorderStyle.FixedSingle;
         }
