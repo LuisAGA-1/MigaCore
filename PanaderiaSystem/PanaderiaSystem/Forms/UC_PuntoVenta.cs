@@ -492,7 +492,7 @@ namespace PanaderiaSystem.Forms
         {
             var sb = new StringBuilder();
             sb.AppendLine("╔══════════════════════════╗");
-            sb.AppendLine("║      🥐 MIGACORE         ║");
+            sb.AppendLine("║      🥐 SOFTPAN          ║");
             sb.AppendLine("║   Sistema de Ventas      ║");
             sb.AppendLine("╚══════════════════════════╝");
             sb.AppendLine();

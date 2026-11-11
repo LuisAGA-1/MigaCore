@@ -18,7 +18,7 @@ namespace PanaderiaSystem.Forms
 
         private void InitializeComponent()
         {
-            this.Text = "MigaCore - Iniciar Sesión";
+            this.Text = "SoftPan - Iniciar Sesión";
             this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
             this.Size = new Size(420, 500);
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -36,7 +36,7 @@ namespace PanaderiaSystem.Forms
 
             var picLogo = new PictureBox
             {
-                Image = Image.FromStream(GetType().Assembly.GetManifestResourceStream("logo-migacore.png")),
+                Image = Image.FromStream(GetType().Assembly.GetManifestResourceStream("logo-softpan.png")),
                 SizeMode = PictureBoxSizeMode.Zoom,
                 Size = new Size(72, 72),
                 Location = new Point((420 - 72) / 2, 12),
@@ -45,7 +45,7 @@ namespace PanaderiaSystem.Forms
 
             var lblTitulo = new Label
             {
-                Text = "MIGACORE",
+                Text = "SOFTPAN",
                 Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = Color.FromArgb(255, 220, 150),
                 TextAlign = ContentAlignment.MiddleCenter,

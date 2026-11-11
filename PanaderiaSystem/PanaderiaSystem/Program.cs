@@ -7,9 +7,9 @@ namespace PanaderiaSystem
 {
     internal static class Program
     {
-        // %LOCALAPPDATA%\MigaCore\errores.log
+        // %LOCALAPPDATA%\SoftPan\errores.log
         private static readonly string LogPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MigaCore", "errores.log");
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SoftPan", "errores.log");
 
         [STAThread]
         static void Main()
@@ -45,7 +45,7 @@ namespace PanaderiaSystem
             string mensaje = npg != null && !(npg is Npgsql.PostgresException)
                 ? "No hay conexión con la base de datos. Revisa que el servidor PostgreSQL esté encendido y vuelve a intentar."
                 : "Ocurrió un error inesperado: " + ex?.Message;
-            MessageBox.Show(mensaje + $"\n\nDetalle guardado en:\n{LogPath}", "MigaCore",
+            MessageBox.Show(mensaje + $"\n\nDetalle guardado en:\n{LogPath}", "SoftPan",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
